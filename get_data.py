@@ -4,6 +4,8 @@ import pandas as pd
 import omicscope as omics
 import matplotlib.pyplot as plt
 import math
+import json
+from pathlib import Path
 
 
 def read_proteomics_file(rawfilepath, method, control, foldchange):
@@ -100,26 +102,29 @@ def plot_data(rawfiledata, analysis_type, titlename, plotsdir, analysis, protein
 
 
 try:
-    # Uso: python get_data.py caminho/para/a/planilha.xlsx metodo grupo_controle caminho/para/a/saida fc
+    with open("config.json", "r") as jsonfile:
+        config_data = json.load(jsonfile)
+    # Uso: python get_data.py caminho/para/a/planilha.xlsx
     # Obtendo dados das análises a partir do usuario
     raw_file_path = sys.argv[1]
     sample_name = raw_file_path.split("/")[-1].split(".")[0]
 
     # Obtendo método de proteômica
-    method = sys.argv[2]
+    method = config_data["Method"]
 
     # Obtendo grupo controle
-    control_group = sys.argv[3]
+    control_group = config_data["Control"]
 
-    # Obtendo outputh path
-    output_path = sys.argv[4]
+    # Obtendo output path
+    output_path = "data/output"
     plots_dir = os.path.join(output_path, "plots")
 
+    #cria o output path caso não exista
     if not os.path.exists(plots_dir):
         os.mkdir(plots_dir)
 
     # Obtendo foldchange
-    fc = float(sys.argv[5])
+    fc = float(config_data['FC'])
 
     #Realizando a transformação do FC em Log2FC
     try:
@@ -180,4 +185,10 @@ for condition in analysis_types:
         analysis=condition,
         proteins=DEPs
     )
-print("Plotagem dos dados concluída.")
+os.mkdir("data/output/enrichment_data")
+
+print("Plotagem dos dados concluída. Realize o enriquecimento com as DEPs em https://davidbioinformatics.nih.gov/home.jsp")
+print("Baixe os arquivos do enriquecimento em .CSV, e adicione em enrichment data, localizado dentro do diretório data, na pasta output \n"
+      "e execute o script plot.py da seguinte maneira: ")
+print("python3 plot.py plot_type")
+print("tipos de graficos aceitos em plot_type: scatterplot, barplot")
